@@ -20,6 +20,7 @@ The following workflow is described:
 5. [Publish Build Info and Attach Build Evidence](#publish-build-info-and-attach-build-evidence)  
 6. [Create a Release Bundle v2 from the Build](#create-a-release-bundle-v2-from-the-build)  
 7. [Attach Release Bundle Evidence](#attach-release-bundle-evidence)
+8. [Create an External Policy to Potentially Block Release Bundle Promotion](#create-external-policy-to-block-rb-promotion)
 
 Refer to [build.yaml](https://github.com/jfrog/Evidence-Examples/tree/main/.github/workflows) for the complete script.
 
@@ -182,3 +183,11 @@ This section of [build.yaml](https://github.com/jfrog/Evidence-Examples/tree/mai
        --key "${{ secrets.PRIVATE_KEY }}"  
      echo ' Evidence attached: integration-test ' >> $GITHUB_STEP_SUMMARY  
 ```
+
+## Create an External Policy to Potentially Block Release Bundle Promotion {#create-external-policy-to-block-rb-promotion}
+
+When the Evidence service is used in conjunction with JFrog Xray, each Release Bundle promotion generates evidence in the form of a CycloneDX SBOM. You can create a policy in an external tool (for example, a rego policy) that reviews the contents of the CycloneDX evidence file and decides whether to block the promotion because the Release Bundle fails to meet all your organization's requirements for promotion to the next stage of your SDLC.
+
+To see a sample rego policy, go [here](https://github.com/jfrog/Evidence-Examples/blob/main/policy/policy.rego).
+For more information about integrating Release Lifecycle Management and Evidence with Xray, see [Scan Release Bundles (v2) with Xray](https://jfrog.com/help/r/jfrog-artifactory-documentation/scan-release-bundles-v2-with-xray).
+
