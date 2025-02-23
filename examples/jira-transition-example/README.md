@@ -26,3 +26,6 @@ for example:
                   --predicate-type https://jfrog.com/evidence/requirements-approval/v1 \
                   --key "${{ secrets.JIRA_TEST_PKEY }}" \
                   --key-alias ${{ vars.JIRA_TEST_KEY }}``
+
+
+
