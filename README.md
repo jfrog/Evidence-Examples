@@ -5,7 +5,6 @@ Artifactory enables you to attach evidence (signed metadata) to a designated sub
 This document describes how to use the JFrog CLI to create different types of evidence related to a Docker image deployed to Artifactory, including:
 
 * Package evidence
-* Generic evidence
 * Build evidence
 * Release Bundle evidence   
 
@@ -16,11 +15,10 @@ The following workflow is described:
    2. [Log In to the Artifactory Docker Registry](#log-in-to-the-artifactory-docker-registry)  
 2. [Build the Docker Image](#build-the-docker-image)  
 3. [Attach Package Evidence](#attach-package-evidence)  
-4. [Upload README File and Associated Evidence](#upload-readme-file-and-associated-evidence)  
-5. [Publish Build Info and Attach Build Evidence](#publish-build-info-and-attach-build-evidence)  
-6. [Create a Release Bundle v2 from the Build](#create-a-release-bundle-v2-from-the-build)  
-7. [Attach Release Bundle Evidence](#attach-release-bundle-evidence)
-8. [Create an External Policy to Potentially Block Release Bundle Promotion](#create-an-external-policy-to-potentially-block-release-bundle-promotion)
+4. [Publish Build Info and Attach Build Evidence](#publish-build-info-and-attach-build-evidence)  
+5. [Create a Release Bundle v2 from the Build](#create-a-release-bundle-v2-from-the-build)  
+6. [Attach Release Bundle Evidence](#attach-release-bundle-evidence)
+7. [Create an External Policy to Potentially Block Release Bundle Promotion](#create-an-external-policy-to-potentially-block-release-bundle-promotion)
 
 Refer to [build.yml](https://github.com/jfrog/Evidence-Examples/tree/main/.github/workflows/build.yml) for the complete script.
 
@@ -115,19 +113,6 @@ This section of [build.yml](https://github.com/jfrog/Evidence-Examples/tree/main
        --key "${{ secrets.PRIVATE_KEY }}" \  
        --predicate ./sign.json --predicate-type https://jfrog.com/evidence/signature/v1   
      echo ' Evidence attached: `signature` ' 
-```
-
-## Upload README File and Associated Evidence
-
-This section of [build.yml](https://github.com/jfrog/Evidence-Examples/tree/main/.github/workflows/build.yml) uploads the README file and creates signed evidence about this generic artifact. The purpose of this section is to demonstrate the ability to create evidence for any type of file uploaded to Artifactory, in addition to packages, builds, and Release Bundles.
-
-```yaml
-- name: Upload readme file  
-  run: |  
-    jf rt upload ./README.md example-project-generic-dev/readme/${{ github.run\_number }}/ --build-name ${{ vars.BUILD_NAME }} --build-number ${{ github.run_number }}  
-    jf evd create --subject-repo-path example-project-generic-dev/readme/${{ github.run_number }}/README.md \  
-      --key "${{ secrets.PRIVATE_KEY }}" \  
-      --predicate ./sign.json --predicate-type https://jfrog.com/evidence/signature/v1
 ```
 
 ## Publish Build Info and Attach Build Evidence
