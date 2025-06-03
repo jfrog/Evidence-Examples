@@ -63,7 +63,7 @@ jobs:
           # create evidence from sonar-scan analysis
           set +e
           # --FailOnAnalysisFailure causes a failure on gateway-failed sonar analysis 
-          ./examples/sonar-scan-example/bin/sonar-scan-extractor-linux-amd64  --reportTaskFile=$PWD/.scannerwork/report-task.txt > predicate.json
+          ./examples/sonar-scan-example/bin/sonar-scan-extractor-linux-amd64  --MaxRetries=5 --reportTaskFile=$PWD/.scannerwork/report-task.txt > predicate.json
           EXIT_CODE=$?
           set -e          
           # write the exit code to the github output so that it can be used in the evidence creation step
