@@ -4,10 +4,10 @@ on:
   workflow_dispatch:  # This allows manual triggering of the workflow
   push:
     branches:
-      - CCS-2-Additional_evidence_examples
+      - selfhosted_sonar_example
   pull_request:
       branches:
-        - CCS-2-Additional_evidence_examples
+        - selfhosted_sonar_example
 permissions:
   id-token: write
   contents: read
