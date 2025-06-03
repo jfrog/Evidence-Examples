@@ -55,7 +55,7 @@ jobs:
         run: |
           $PWD/sonar-scanner-6.2.1.4610/bin/sonar-scanner \
             -Dsonar.projectKey=test-evidence \
-            -Dsonar.organization=my-evidence-test-org \
+            -Dsonar.organization=my-evidence-test-org1 \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.java.jdkHome=$JAVA_HOME \
             -Dsonar.verbose=true \
