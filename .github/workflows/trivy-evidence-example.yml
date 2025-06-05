@@ -39,6 +39,18 @@ jobs:
           format: json
           output: trivy-results.json
 
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.8
+
+      - name: Install jq
+        run: |
+          sudo apt-get install jq
+
+      - name: Convert Trivy JSON Output to Markdown
+        run: python ./examples/trivy-verify-example/trivy_json_to_markdown_helper.py trivy-results.json
+
       - name: Log in to Artifactory Docker Registry
         uses: docker/login-action@v3
         with:
@@ -67,5 +79,6 @@ jobs:
             --key "${{ secrets.TRIVY_TEST_PKEY }}" \
             --key-alias ${{ vars.TRIVY_TEST_KEY }} \
             --predicate ./trivy-results.json \
-            --predicate-type http://aquasec.com/trivy/security-scan
+            --predicate-type http://aquasec.com/trivy/security-scan \
+            --markdown trivy-results.md
           echo "Trivy evidence attached to package"
