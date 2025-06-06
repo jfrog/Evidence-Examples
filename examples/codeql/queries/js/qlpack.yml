@@ -1,0 +1,5 @@
+name: sample/js-queries
+version: 0.0.1
+dependencies:
+  codeql/javascript-queries: "*"
+extractor: javascript
