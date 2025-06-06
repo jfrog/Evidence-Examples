@@ -1,52 +1,54 @@
 # Trivy Security Scan Evidence Example
 
-This example demonstrates how to automate Trivy security scanning for Docker images and attach the scan results as signed evidence to the image in JFrog Artifactory using GitHub Actions and JFrog CLI.
+This example demonstrates how to automate Trivy security scanning for Docker images and attach the scan results as
+signed evidence to the image in JFrog Artifactory using GitHub Actions and JFrog CLI.
 
 ## Overview
-The workflow builds a Docker image, scans it with Trivy for vulnerabilities, pushes the image to Artifactory, and attaches the Trivy scan results as evidence to the image package. This enables traceability and compliance for security scanning in your CI/CD pipeline.
+
+The workflow builds a Docker image, scans it with Trivy for vulnerabilities, pushes the image to Artifactory, and
+attaches the Trivy scan results as evidence to the image package. This enables traceability and compliance for security
+scanning in your CI/CD pipeline.
 
 ## Prerequisites
+
 - JFrog CLI 2.65.0 or above (installed automatically in the workflow)
 - Artifactory configured as a Docker registry
 - The following GitHub repository variables:
-  - `REGISTRY_DOMAIN` (Artifactory Docker registry domain, e.g. `mycompany.jfrog.io`)
-  - `ARTIFACTORY_URL` (Artifactory base URL)
-  - `TRIVY_TEST_KEY` (Key alias for signing evidence)
+    - `REGISTRY_DOMAIN` (Artifactory Docker registry domain, e.g. `mycompany.jfrog.io`)
+    - `ARTIFACTORY_URL` (Artifactory base URL)
+    - `TRIVY_TEST_KEY` (Key alias for signing evidence)
 - The following GitHub repository secrets:
-  - `ARTIFACTORY_ACCESS_TOKEN` (Artifactory access token)
-  - `JF_USER` (Artifactory username)
-  - `TRIVY_TEST_PKEY` (Private key for signing evidence)
+    - `ARTIFACTORY_ACCESS_TOKEN` (Artifactory access token)
+    - `TRIVY_TEST_PKEY` (Private key for signing evidence)
 
 ## Environment Variables Used
-- `REGISTRY_URL` - Docker registry domain
-- `REPO_NAME` - Docker repository name 
-- `IMAGE_NAME` - Docker image name 
-- `VERSION` - Image version/tag 
-- `BUILD_NAME` - Name for the build info 
+
+- `REGISTRY_DOMAIN` - Docker registry domain
 
 ## Workflow Steps
+
 1. **Install JFrog CLI**
-   - Installs the JFrog CLI using the official GitHub Action.
+    - Installs the JFrog CLI using the official GitHub Action.
 2. **Checkout Repository**
-   - Checks out the source code for the build context.
+    - Checks out the source code for the build context.
 3. **Build Docker Image**
-   - Builds the Docker image using the provided Dockerfile and tags it for the Artifactory registry.
+    - Builds the Docker image using the provided Dockerfile and tags it for the Artifactory registry.
 4. **Run Trivy Security Scan**
-   - Scans the built Docker image for vulnerabilities using Trivy and outputs the results in JSON format.
-5. **Log in to Artifactory Docker Registry**
-   - Authenticates Docker with Artifactory for pushing the image.
-6. **Set up Docker Buildx**
-   - Prepares Docker Buildx for advanced build and push operations.
-7. **Push Docker Image to Artifactory**
-   - Pushes the tagged Docker image to the Artifactory Docker registry using JFrog CLI.
-8. **Publish Build Info**
-   - Publishes build information to Artifactory for traceability.
-9. **Attach Trivy Evidence Using JFrog CLI**
-   - Attaches the Trivy scan results as signed evidence to the Docker image package in Artifactory.
+    - Scans the built Docker image for vulnerabilities using Trivy and outputs the results in JSON format.
+5. **Generate Custom Markdown For Trivy Results**
+    - (Optional) Converts the Trivy JSON scan results to markdown format for better readability using a python script
+      with predefined static markdown template.
+6. **Push Docker Image to Artifactory**
+    - Pushes the tagged Docker image to the Artifactory Docker registry using JFrog CLI.
+7. **Publish Build Info**
+    - Publishes build information to Artifactory for traceability.
+8. **Attach Trivy Evidence Using JFrog CLI**
+    - Attaches the Trivy scan results as signed evidence to the Docker image package in Artifactory.
 
 ## Example Usage
 
 You can trigger the workflow manually from the GitHub Actions tab. The workflow will:
+
 - Build and scan the Docker image
 - Push the image to Artifactory
 - Attach the Trivy scan results as evidence
@@ -83,6 +85,7 @@ You can trigger the workflow manually from the GitHub Actions tab. The workflow 
   ```
 
 ## References
+
 - [Trivy Documentation](https://aquasecurity.github.io/trivy/)
 - [JFrog Evidence Management](https://jfrog.com/help/r/jfrog-artifactory-documentation/evidence-management)
 - [JFrog CLI Documentation](https://jfrog.com/getcli/)
