@@ -204,14 +204,6 @@ class MarkdownBuilder:
             location += f"-`{end_line}`"
         return location
 
-    def add_recommendations(self) -> None:
-        self.sections.extend([
-            "\n## 💡 Recommendations",
-            "\n1. Review all findings, particularly those marked as high severity",
-            "2. Prioritize fixes based on security severity scores",
-            "3. Implement secure coding practices to prevent similar issues",
-            "4. Run regular CodeQL scans to maintain code security"
-        ])
 
     def build(self) -> str:
         self.add_header()
