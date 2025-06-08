@@ -74,8 +74,7 @@ jobs:
       - name: Setup Node
         if: matrix.language_details.name == 'javascript'
         uses: actions/setup-node@v4
-        with:
-          node-version: '18'
+
 
       - name: Build and Publish ${{ matrix.language_details.name }} package
         env:
