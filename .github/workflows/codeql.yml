@@ -105,16 +105,18 @@ jobs:
           JFROG_SIGNING_KEY: ${{ secrets.JFROG_SIGNING_KEY }}
         run: |
           KEY=$(echo $JFROG_SIGNING_KEY | base64 -d)
+          echo $KEY
+          jf config show
           if [ ${{ matrix.language_details.name }} == 'go' ]; then
             PACKAGE_VERSION="v0.0.${{ github.run_number }}"
             jf evd create \
-             --package-name="jfrog.com/mygobuild" \
+            --package-name="jfrog.com/mygobuild" \
             --package-version="$PACKAGE_VERSION" \
             --package-repo-name="go-local" \
             --key="${{ secrets.CODEQL_SIGNING_KEY }}" \
             --key-alias= ${{ vars.CODEQL_KEY_ALIAS }} \
             --predicate="results-go/go.sarif" \
-            --predicate-type="http://github.com/CodeQL/static-analysis"
+            --predicate-type="http://github.com/CodeQL/static-analysis" \
             --markdown="results-go/go-report.md"
           elif [ ${{ matrix.language_details.name }} == 'javascript' ]; then
             PACKAGE_VERSION="0.0.1"
@@ -125,6 +127,6 @@ jobs:
             --key="${{ secrets.CODEQL_SIGNING_KEY }}" \
             --key-alias= ${{ vars.CODEQL_KEY_ALIAS }} \
             --predicate="results-javascript/javascript.sarif" \
-            --predicate-type="http://github.com/CodeQL/static-analysis"
+            --predicate-type="http://github.com/CodeQL/static-analysis" \
             --markdown="results-javascript/javascript-report.md"
           fi

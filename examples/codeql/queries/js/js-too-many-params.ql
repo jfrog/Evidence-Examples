@@ -2,8 +2,8 @@
  * @name Too many parameters
  * @description Functions with too many parameters can be hard to read and maintain.
  * @kind problem
- * @problem.severity warning
  * @precision high
+ * @problem.severity warning
  * @id js/too-many-params
  * @tags maintainability
  */

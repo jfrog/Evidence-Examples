@@ -64,11 +64,10 @@ class MarkdownBuilder:
         self.sections.extend([
             "# 🔍 CodeQL Security Analysis Report",
             "\n## Scan Details",
-            f"**Scan Type**: CodeQL Static Analysis",
-            f"**Scan Date**: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}",
-            f"**Operating System**: {platform.system()} {platform.release()}",
-            f"**Analysis Tool**: CodeQL {codeql_version}",
-            f"**Repository**: {os.path.basename(os.getcwd())}",
+            f"**Scan Type**: CodeQL Static Analysis\n",
+            f"**Scan Date**: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S UTC')}\n",
+            f"**Operating System**: {platform.system()} {platform.release()}\n",
+            f"**Analysis Tool**: CodeQL",
             "\n---\n"
         ])
 
@@ -79,18 +78,45 @@ class MarkdownBuilder:
         self.sections.extend([
             "\n## 🛠️ Analysis Details",
             f"- **Tool**: {tool.get('name', 'CodeQL')}",
-            f"- **Version**: {tool.get('version', 'N/A')}",
-            f"- **Language**: {tool.get('language', 'N/A')}"
+            f"- **Version**: {tool.get('semanticVersion', tool.get('version', 'N/A'))}",
         ])
 
+        # Map artifact index to language
+        artifact_lang = {}
+        for notification in tool.get('notifications', []):
+            lang = notification.get('properties', {}).get('languageDisplayName')
+            locations = notification.get('locations', [])
+            for loc in locations:
+                idx = loc.get('physicalLocation', {}).get('artifactLocation', {}).get('index')
+                if lang and idx is not None:
+                    artifact_lang[idx] = lang
+
+
+
     def add_summary(self) -> None:
-        severity_count = {'error': 0, 'warning': 0, 'note': 0, 'none': 0}
+        severity_count = {
+            'error': 0,
+            'warning': 0,
+            'note': 0,
+            'none': 0
+        }
         total_issues = 0
 
         for run in self.data.get('runs', []):
+            # Collect rules from driver and all extensions
+            rules = {rule['id']: rule for rule in run.get('tool', {}).get('driver', {}).get('rules', [])}
+            for ext in run.get('tool', {}).get('extensions', []):
+                for rule in ext.get('rules', []):
+                    rules[rule['id']] = rule
+
             for result in run.get('results', []):
-                level = result.get('level', 'none').lower()
-                severity_count[level] = severity_count.get(level, 0) + 1
+                rule_id = result.get('ruleId', 'unknown')
+                rule = rules.get(rule_id, {})
+                rule_severity = rule.get('properties', {}).get('problem.severity', 'none')
+                level = result.get('level', rule_severity).lower()
+                if level not in severity_count:
+                    severity_count[level] = 0
+                severity_count[level] += 1
                 total_issues += 1
 
         self.sections.extend([
@@ -99,10 +125,11 @@ class MarkdownBuilder:
             "\n### Severity Breakdown"
         ])
 
-        for severity, count in severity_count.items():
-            if count > 0:
-                emoji = self.formatter.get_emoji(severity)
-                self.sections.append(f"- {emoji} **{severity.title()}**: {count}")
+        for severity in ['error', 'warning', 'note', 'none']:
+            count = severity_count.get(severity, 0)
+            emoji = self.formatter.get_emoji(severity)
+            self.sections.append(f"- {emoji} **{severity.title()}**: {count}")
+
 
     def add_query_info(self) -> None:
         self.sections.append("\n## 📝 Query Information")
@@ -142,14 +169,18 @@ class MarkdownBuilder:
         ])
 
         for run in self.data.get('runs', []):
+            # Collect rules from driver and all extensions
             rules = {rule['id']: rule for rule in run.get('tool', {}).get('driver', {}).get('rules', [])}
+            for ext in run.get('tool', {}).get('extensions', []):
+                for rule in ext.get('rules', []):
+                    rules[rule['id']] = rule
 
             for result in run.get('results', []):
                 rule_id = result.get('ruleId', 'unknown')
                 rule = rules.get(rule_id, {})
                 rule_name = rule.get('name', rule_id)
 
-                # ✅ New logic to fallback to rule severity if result.level is missing
+                # Fallback to rule severity if result.level is missing
                 rule_severity = rule.get('properties', {}).get('problem.severity', 'none')
                 severity = result.get('level', rule_severity)
 
@@ -160,7 +191,6 @@ class MarkdownBuilder:
                 self.sections.append(
                     f"| {emoji} {severity.title()} | {rule_name} | {location} | {message} |"
                 )
-
     def _format_location(self, locations: List[Dict]) -> str:
         if not locations:
             return "N/A"

@@ -13,7 +13,7 @@ The workflow performs CodeQL analysis on Go and JavaScript codebases, publishes 
     - `ARTIFACTORY_URL` (Artifactory base URL)
 - The following GitHub repository secrets:
     - `ARTIFACTORY_ACCESS_TOKEN` (Artifactory access token)
-    - `JFROG_SIGNING_KEY` (Base64 encoded key for signing evidence)
+    - `JFROG_SIGNING_KEY`
 
 ## Supported Languages
 - Go
