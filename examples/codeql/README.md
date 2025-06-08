@@ -71,25 +71,27 @@ The workflow attaches CodeQL analysis results as evidence using the following fo
 ### For Go Packages:
 ```yaml
 jf evd create \
-  --package-name="example.com/mygobuild" \
-  --package-version="v0.0.1" \
-  --package-repo-name="go-local" \
-  --key="$KEY" \
-  --key-alias="dev" \
-  --predicate="results-go/go.sarif" \
-  --predicate-type="http://github.com/CodeQL/static-analysis"
+--package-name "jfrog.com/mygobuild" \
+--package-version $PACKAGE_VERSION \
+--package-repo-name go-local \
+--key "${{ secrets.CODEQL_SIGNING_KEY }}" \
+--key-alias ${{ vars.CODEQL_KEY_ALIAS }} \
+--predicate "results-go/go.sarif" \
+--predicate-type "http://github.com/CodeQL/static-analysis" \
+--markdown "results-go/go-report.md"
 ```
 
 ### For JavaScript Packages:
 ```yaml
 jf evd create \
-  --package-name="my-javascript-build" \
-  --package-version="0.0.1" \
-  --package-repo-name="javascript-local" \
-  --key="$KEY" \
-  --key-alias="dev" \
-  --predicate="results-javascript/javascript.sarif" \
-  --predicate-type="http://github.com/CodeQL/static-analysis"
+--package-name my-javascript-build \
+--package-version $PACKAGE_VERSION \
+--package-repo-name javascript-local \
+--key "${{ secrets.CODEQL_SIGNING_KEY }}" \
+--key-alias ${{ vars.CODEQL_KEY_ALIAS }} \
+--predicate "results-javascript/javascript.sarif" \
+--predicate-type "http://github.com/CodeQL/static-analysis" \
+--markdown "results-javascript/javascript-report.md"
 ```
 
 ## Workflow Trigger
