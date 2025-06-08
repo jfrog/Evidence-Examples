@@ -30,7 +30,7 @@ The workflow performs CodeQL analysis on Go and JavaScript codebases, publishes 
 
 3. **Setup Build Environment**
     - For Go: Installs Go 1.24.3
-    - For JavaScript: Installs Node.js 18.x
+    - For JavaScript: Installs Node.js
     - Configures JFrog CLI with Artifactory credentials
 
 4. **Run CodeQL Analysis**
