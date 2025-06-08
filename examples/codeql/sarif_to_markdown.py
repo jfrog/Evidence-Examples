@@ -211,7 +211,6 @@ class MarkdownBuilder:
         self.add_summary()
         self.add_query_info()
         self.add_findings()
-        self.add_recommendations()
         return '\n'.join(self.sections)
 
 def setup_logging():
