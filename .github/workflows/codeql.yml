@@ -43,8 +43,7 @@ jobs:
         env:
           JF_URL: ${{ vars.ARTIFACTORY_URL }}
           JF_ACCESS_TOKEN: ${{ secrets.ARTIFACTORY_ACCESS_TOKEN }}
-        with:
-          version: 2.76.1
+
 
       - name: Setup Go
         if: matrix.language_details.name == 'go'
