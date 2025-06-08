@@ -93,8 +93,8 @@ jobs:
           elif [ ${{ matrix.language_details.name }} == 'javascript' ]; then
             cd $JS_CODE_PATH
             jf npm-config --repo-resolve=javascript-remote --repo-deploy=javascript-local --server-id-deploy=setup-jfrog-cli-server --server-id-resolve=setup-jfrog-cli-server
-            jf npm publish --build-name=my-javascript-build --build-number=${{ github.run_number }}
-            jf rt bp my-javascript-build ${{ github.run_number }}
+            jf npm publish --build-name=my-javascript-build --build-number=1
+            jf rt bp my-javascript-build 1
           fi
           cd -
         continue-on-error: true
