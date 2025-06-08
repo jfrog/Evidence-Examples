@@ -89,13 +89,13 @@ jobs:
               --server-id-deploy=setup-jfrog-cli-server \
               --server-id-resolve=setup-jfrog-cli-server
           
-            jf gp --build-name=my-go-build --build-number=1 v0.0.1
-            jf rt bp my-go-build 1
+            jf gp --build-name=my-go-build --build-number=${{ github.run_number }} v0.0.${{ github.run_number }}
+            jf rt bp my-go-build ${{ github.run_number }}
           elif [ ${{ matrix.language_details.name }} == 'javascript' ]; then
             cd $JS_CODE_PATH
             jf npm-config --repo-resolve=javascript-remote --repo-deploy=javascript-local --server-id-deploy=setup-jfrog-cli-server --server-id-resolve=setup-jfrog-cli-server
-            jf npm publish --build-name=my-javascript-build --build-number=1
-            jf rt bp my-javascript-build 1
+            jf npm publish --build-name=my-javascript-build --build-number=${{ github.run_number }}
+            jf rt bp my-javascript-build ${{ github.run_number }}
           fi
           cd -
         continue-on-error: true
@@ -106,23 +106,25 @@ jobs:
         run: |
           KEY=$(echo $JFROG_SIGNING_KEY | base64 -d)
           if [ ${{ matrix.language_details.name }} == 'go' ]; then
+            PACKAGE_VERSION="v0.0.${{ github.run_number }}"
             jf evd create \
-            --package-name="mygobuild" \
-            --package-version="v0.0.1" \
+             --package-name="jfrog.com/mygobuild" \
+            --package-version="$PACKAGE_VERSION" \
             --package-repo-name="go-local" \
-            --key="$KEY" \
-            --key-alias="dev" \
+            --key="${{ secrets.CODEQL_SIGNING_KEY }}" \
+            --key-alias= ${{ vars.CODEQL_KEY_ALIAS }} \
             --predicate="results-go/go.sarif" \
-            --predicate-type="http://github.com/CodeQL/static-analysis" \
+            --predicate-type="http://github.com/CodeQL/static-analysis"
             --markdown="results-go/go-report.md"
           elif [ ${{ matrix.language_details.name }} == 'javascript' ]; then
+            PACKAGE_VERSION="0.0.1"
             jf evd create \
             --package-name="my-javascript-build" \
-            --package-version="0.0.1" \
+            --package-version="$PACKAGE_VERSION" \
             --package-repo-name="javascript-local" \
-            --key="$KEY" \
-            --key-alias="dev" \
+            --key="${{ secrets.CODEQL_SIGNING_KEY }}" \
+            --key-alias= ${{ vars.CODEQL_KEY_ALIAS }} \
             --predicate="results-javascript/javascript.sarif" \
-            --predicate-type="http://github.com/CodeQL/static-analysis" \
+            --predicate-type="http://github.com/CodeQL/static-analysis"
             --markdown="results-javascript/javascript-report.md"
           fi
