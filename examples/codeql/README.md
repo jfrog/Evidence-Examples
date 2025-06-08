@@ -2,7 +2,7 @@
 
 This example demonstrates how to automate CodeQL security analysis for Go and JavaScript code, and attach the scan results as signed evidence to the packages in JFrog Artifactory using GitHub Actions and JFrog CLI.
 
-## Overview
+##  Overview
 The workflow performs CodeQL analysis on Go and JavaScript codebases, publishes the packages to Artifactory, and attaches the CodeQL analysis results as evidence. This enables traceability and security compliance in your CI/CD pipeline.
 
 ## Prerequisites
