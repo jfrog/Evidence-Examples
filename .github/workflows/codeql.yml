@@ -7,7 +7,6 @@ on:
   workflow_dispatch:
 
 permissions:
-  id-token: write
   contents: read
   actions: read
 
@@ -29,7 +28,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           sparse-checkout: |
-            examples/codeql/**/**
+            examples/codeql/**
           sparse-checkout-cone-mode: false
 
       - name: Set up CodeQL for ${{ matrix.language_details.name }}
@@ -44,13 +43,15 @@ jobs:
         env:
           JF_URL: ${{ vars.ARTIFACTORY_URL }}
           JF_ACCESS_TOKEN: ${{ secrets.ARTIFACTORY_ACCESS_TOKEN }}
-        
+        with:
+          version: 2.76.1
+
       - name: Setup Go
         if: matrix.language_details.name == 'go'
         uses: actions/setup-go@v5
         with:
           go-version: '1.24.3'
-  
+
 
       - name: Run CodeQL Analysis for ${{ matrix.language_details.name }}
         uses: github/codeql-action/analyze@v3
@@ -59,10 +60,23 @@ jobs:
           output: results-${{ matrix.language_details.name }}
           upload: false
 
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+
+      - name: Convert SARIF to Markdown
+        run: |
+          python ./examples/codeql/sarif_to_markdown.py \
+            results-${{ matrix.language_details.name }}/${{ matrix.language_details.name }}.sarif \
+            results-${{ matrix.language_details.name }}/${{ matrix.language_details.name }}-report.md
+
       - name: Setup Node
         if: matrix.language_details.name == 'javascript'
         uses: actions/setup-node@v4
-  
+        with:
+          node-version: '18'
+
       - name: Build and Publish ${{ matrix.language_details.name }} package
         env:
           GO_CODE_PATH: examples/codeql/go
@@ -74,38 +88,41 @@ jobs:
             jf go-config --repo-resolve=go-remote --repo-deploy=go-local \
               --server-id-deploy=setup-jfrog-cli-server \
               --server-id-resolve=setup-jfrog-cli-server
-            
-            jf gp --build-name=my-go-build --build-number=${{ github.run_number }} v0.0.${{ github.run_number }}
-            jf rt bp my-go-build ${{ github.run_number }}
+          
+            jf gp --build-name=my-go-build --build-number=1 v0.0.1
+            jf rt bp my-go-build 1
           elif [ ${{ matrix.language_details.name }} == 'javascript' ]; then
             cd $JS_CODE_PATH
             jf npm-config --repo-resolve=javascript-remote --repo-deploy=javascript-local --server-id-deploy=setup-jfrog-cli-server --server-id-resolve=setup-jfrog-cli-server
-            jf npm publish --build-name=my-javascript-build --build-number=${{ github.run_number }}
-            jf rt bp my-javascript-build ${{ github.run_number }}
+            jf npm publish --build-name=my-javascript-build --build-number=1
+            jf rt bp my-javascript-build 1
           fi
           cd -
         continue-on-error: true
 
       - name: Attach Evidence Using JFrog CLI
+        env:
+          JFROG_SIGNING_KEY: ${{ secrets.JFROG_SIGNING_KEY }}
         run: |
+          KEY=$(echo $JFROG_SIGNING_KEY | base64 -d)
           if [ ${{ matrix.language_details.name }} == 'go' ]; then
-            PACKAGE_VERSION="v0.0.${{ github.run_number }}"
             jf evd create \
-            --package-name="jfrog.com/mygobuild" \
-            --package-version="$PACKAGE_VERSION" \
+            --package-name="mygobuild" \
+            --package-version="v0.0.1" \
             --package-repo-name="go-local" \
-            --key="${{ secrets.CODEQL_SIGNING_KEY }}" \
-            --key-alias= ${{ vars.CODEQL_KEY_ALIAS }} \
+            --key="$KEY" \
+            --key-alias="dev" \
             --predicate="results-go/go.sarif" \
-            --predicate-type="http://github.com/CodeQL/static-analysis"
+            --predicate-type="http://github.com/CodeQL/static-analysis" \
+            --markdown="results-go/go-report.md"
           elif [ ${{ matrix.language_details.name }} == 'javascript' ]; then
-            PACKAGE_VERSION="0.0.1"
             jf evd create \
             --package-name="my-javascript-build" \
-            --package-version="$PACKAGE_VERSION" \
+            --package-version="0.0.1" \
             --package-repo-name="javascript-local" \
-            --key="${{ secrets.CODEQL_SIGNING_KEY }}" \
-            --key-alias= ${{ vars.CODEQL_KEY_ALIAS }} \
+            --key="$KEY" \
+            --key-alias="dev" \
             --predicate="results-javascript/javascript.sarif" \
-            --predicate-type="http://github.com/CodeQL/static-analysis"
+            --predicate-type="http://github.com/CodeQL/static-analysis" \
+            --markdown="results-javascript/javascript-report.md"
           fi
