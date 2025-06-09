@@ -70,6 +70,7 @@ jobs:
           python ./examples/codeql/sarif_to_markdown.py \
             results-${{ matrix.language_details.name }}/${{ matrix.language_details.name }}.sarif \
             results-${{ matrix.language_details.name }}/${{ matrix.language_details.name }}-report.md
+            cat results-javascript/javascript.sarif
 
       - name: Setup Node
         if: matrix.language_details.name == 'javascript'
