@@ -1,0 +1,6 @@
+version: 2
+updates:
+  - package-ecosystem: "pip"
+    directory: "/examples/dependabot-alerts-example"
+    schedule:
+      interval: "daily"

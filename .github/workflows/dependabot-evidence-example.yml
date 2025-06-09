@@ -1,0 +1,102 @@
+name: dependabot-evidence-example
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  dependabot-evidence-example:
+    runs-on: ubuntu-latest
+    env: 
+      REPO_NAME: 'dependabot-docker-local'
+      IMAGE_NAME: 'dependabot-docker-image'
+      BUILD_NAME: 'dependabot-evidence-eg'
+      VERSION: ${{ github.run_number }}
+      REGISTRY_DOMAIN: ${{ vars.REGISTRY_DOMAIN }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup JFrog CLI
+        uses: jfrog/setup-jfrog-cli@v4
+        env:
+          JF_URL: ${{ vars.ARTIFACTORY_URL }}
+          JF_ACCESS_TOKEN: ${{ secrets.ARTIFACTORY_ACCESS_TOKEN }}
+        
+      - name: Log in to Artifactory Docker Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ vars.ARTIFACTORY_URL }}
+          username: ${{ secrets.JF_USER }}
+          password: ${{ secrets.ARTIFACTORY_ACCESS_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push Docker Image to Artifactory
+        run: |
+          docker build -f ./examples/dependabot-alerts-example/Dockerfile . --tag $REGISTRY_DOMAIN/$REPO_NAME/$IMAGE_NAME:$VERSION
+          jf rt docker-push $REGISTRY_DOMAIN/$REPO_NAME/$IMAGE_NAME:$VERSION $REPO_NAME --build-name=$BUILD_NAME --build-number=$VERSION
+
+      - name: Get Artifact Details
+        run: |
+          ARTIFACT_NAME="$REGISTRY_DOMAIN/$REPO_NAME/$IMAGE_NAME:$VERSION"
+          echo "ARTIFACT_NAME=$ARTIFACT_NAME" >> $GITHUB_ENV
+
+          IMAGE_ID=$(docker images --format "{{.ID}}" "$ARTIFACT_NAME")
+          echo "IMAGE_ID=$IMAGE_ID" >> $GITHUB_ENV
+
+          IMAGE_SIZE=$(docker images --format "{{.Size}}" "$ARTIFACT_NAME" | sed 's/MB//' | awk '{print $1 * 1024 * 1024}')
+          echo "IMAGE_SIZE=$IMAGE_SIZE" >> $GITHUB_ENV
+
+          echo "SCAN_DATE="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"" >> $GITHUB_ENV
+
+      - name: Fetch Dependabot Vulnerability Snapshot
+        id: dependabot_snapshot
+        env: 
+          GH_TOKEN: ${{ secrets.TOKEN_GIT }}    # GitHub Token with 'security_events: read' permission is required
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.event.repository.name }}
+        run: |
+          gh api "repos/${OWNER}/${REPO}/dependabot/alerts?state=open" \
+          --jq '[.[] |
+              {
+                packageName: .dependency.package.name,
+                ecosystem: .dependency.package.ecosystem,
+                vulnerableVersionRange: .security_vulnerability.vulnerable_version_range,
+                patchedVersion: (try .security_vulnerability.first_patched_version.identifier // "N/A"),
+                severity: .security_vulnerability.severity,
+                ghsaId: .security_advisory.ghsa_id,
+                cveId: (.security_advisory.cve_id // "N/A"),
+                advisoryUrl: .html_url,
+                summary: .security_advisory.summary,
+                detectedAt: .created_at
+              }
+            ]' > result.json
+
+          jq -n --argjson data "$(cat result.json)" '{ data: $data }' > dependabot.json
+
+      - name: Generate and Save Dependabot Markdown Report
+        run: |
+          python ./examples/dependabot-alerts-example/markdown_helper.py \
+            "dependabot.json" \
+            "dependabot_report.md" \
+            "$ARTIFACT_NAME" \
+            "$SCAN_DATE" \
+            "$IMAGE_ID" \
+            "$IMAGE_SIZE"
+
+      - name: Create Dependabot Evidence
+        run: |
+          jf evd create \
+            --package-name $IMAGE_NAME \
+            --package-version $VERSION \
+            --package-repo-name $REPO_NAME \
+            --key "${{ secrets.TEST_PRVT_KEY }}" \
+            --key-alias ${{ vars.TEST_PUB_KEY_ALIAS }} \
+            --predicate ./dependabot.json \
+            --predicate-type http://Github.com/Dependabot/static-analysis \
+            --markdown dependabot_report.md
