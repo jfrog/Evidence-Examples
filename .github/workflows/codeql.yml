@@ -1,0 +1,117 @@
+name : "CodeQL Analysis Workflow"
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+
+
+jobs:
+  codeql:
+    name: Analyse
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        language_details:
+          - name: javascript
+            queries_path: ./examples/codeql/queries/js
+          - name: go
+            queries_path: ./examples/codeql/queries/go
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            examples/codeql/**
+          sparse-checkout-cone-mode: false
+
+      - name: Set up CodeQL for ${{ matrix.language_details.name }}
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language_details.name }}
+          config-file: examples/codeql/codeql-config.yml
+          queries: ${{ matrix.language_details.queries_path }}
+
+      - name: Setup Jfrog CLI for go
+        uses: jfrog/setup-jfrog-cli@v4
+        env:
+          JF_URL: ${{ vars.ARTIFACTORY_URL }}
+          JF_ACCESS_TOKEN: ${{ secrets.ARTIFACTORY_ACCESS_TOKEN }}
+
+
+      - name: Setup Go
+        if: matrix.language_details.name == 'go'
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.3'
+
+
+      - name: Run CodeQL Analysis for ${{ matrix.language_details.name }}
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "security-and-quality"
+          output: results-${{ matrix.language_details.name }}
+          upload: false
+
+      - name: Convert SARIF to Markdown
+        run: |
+          python ./examples/codeql/sarif_to_markdown.py \
+            results-${{ matrix.language_details.name }}/${{ matrix.language_details.name }}.sarif \
+            results-${{ matrix.language_details.name }}/${{ matrix.language_details.name }}-report.md
+
+      - name: Build and Publish ${{ matrix.language_details.name }} package
+        env:
+          GO_CODE_PATH: examples/codeql/go
+          JS_CODE_PATH: examples/codeql/js
+        run: |
+          if [ ${{ matrix.language_details.name }} == 'go' ]; then
+            cd $GO_CODE_PATH
+            # Configure JFrog CLI for Go
+            jf go-config --repo-resolve=go-remote --repo-deploy=go-local \
+              --server-id-deploy=setup-jfrog-cli-server \
+              --server-id-resolve=setup-jfrog-cli-server
+          
+            jf gp --build-name=my-go-build --build-number=${{ github.run_number }} v0.0.${{ github.run_number }}
+            jf rt bp my-go-build ${{ github.run_number }}
+          elif [ ${{ matrix.language_details.name }} == 'javascript' ]; then
+            cd $JS_CODE_PATH
+            jf npm-config --repo-resolve=javascript-remote --repo-deploy=javascript-local \
+              --server-id-deploy=setup-jfrog-cli-server \
+              --server-id-resolve=setup-jfrog-cli-server
+          
+            jf npm publish --build-name=my-javascript-build --build-number=${{ github.run_number }}
+            jf rt bp my-javascript-build ${{ github.run_number }}
+          fi
+          cd -
+        continue-on-error: true
+
+      - name: Attach Evidence Using JFrog CLI
+        run: |
+          jf config show
+          if [ ${{ matrix.language_details.name }} == 'go' ]; then
+            PACKAGE_VERSION="v0.0.${{ github.run_number }}"
+            jf evd create \
+            --package-name "jfrog.com/mygobuild" \
+            --package-version $PACKAGE_VERSION \
+            --package-repo-name go-local \
+            --key "${{ secrets.CODEQL_SIGNING_KEY }}" \
+            --key-alias ${{ vars.CODEQL_KEY_ALIAS }} \
+            --predicate "results-go/go.sarif" \
+            --predicate-type "http://github.com/CodeQL/static-analysis" \
+            --markdown "results-go/go-report.md"
+          elif [ ${{ matrix.language_details.name }} == 'javascript' ]; then
+            PACKAGE_VERSION="0.0.1"
+            jf evd create \
+            --package-name my-javascript-build \
+            --package-version $PACKAGE_VERSION \
+            --package-repo-name javascript-local \
+            --key "${{ secrets.CODEQL_SIGNING_KEY }}" \
+            --key-alias ${{ vars.CODEQL_KEY_ALIAS }} \
+            --predicate "results-javascript/javascript.sarif" \
+            --predicate-type "http://github.com/CodeQL/static-analysis" \
+            --markdown "results-javascript/javascript-report.md"
+          fi

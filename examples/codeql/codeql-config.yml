@@ -1,0 +1,16 @@
+name: "Package-Specific CodeQL Config"
+
+paths-ignore:
+  - '**/node_modules/**'
+  - '**/vendor/**'
+  - '**/dist/**'
+  - '**/build/**'
+  - '**/coverage/**'
+  - '**/test/**'
+  - '**/tests/**'
+  - '**/*.spec.js'
+  - '**/*.test.js'
+  - '**/*.spec.ts'
+
+paths:
+  - examples/codeql/
