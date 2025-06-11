@@ -1,0 +1,62 @@
+name: trivy-evidence-example
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  package-docker-image-with-trivy-evidence:
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY_URL: ${{ vars.REGISTRY_DOMAIN }}
+      REPO_NAME: 'docker-trivy-repo'
+      IMAGE_NAME: 'docker-trivy-image'
+      VERSION: ${{ github.run_number }}
+      BUILD_NAME: 'trivy-docker-build'
+
+    steps:
+      - name: Install jfrog cli
+        uses: jfrog/setup-jfrog-cli@v4
+        env:
+          JF_URL: ${{ vars.ARTIFACTORY_URL }}
+          JF_ACCESS_TOKEN: ${{ secrets.ARTIFACTORY_ACCESS_TOKEN }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker Image
+        run: |
+          docker build . --file ./examples/trivy-verify-example/Dockerfile --tag $REGISTRY_URL/$REPO_NAME/$IMAGE_NAME:$VERSION
+      - name: Run Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY_URL }}/${{ env.REPO_NAME }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}
+          severity: HIGH,CRITICAL
+          format: json
+          output: trivy-results.json
+
+      - name: Convert Trivy JSON Output to Markdown
+        run: python ./examples/trivy-verify-example/trivy_json_to_markdown_helper.py trivy-results.json
+
+      - name: Push Docker Image to Artifactory
+        run: |
+          echo "Pushing Docker image to Artifactory..."
+          jf rt docker-push $REGISTRY_URL/$REPO_NAME/$IMAGE_NAME:$VERSION $REPO_NAME --build-name=$BUILD_NAME --build-number=${{ github.run_number }}
+      - name: Publish Build Info
+        run: |
+          jf rt build-publish $BUILD_NAME ${{ github.run_number }}
+      - name: Attach Evidence Using JFrog CLI
+        run: |
+          jf evd create \
+            --package-name $IMAGE_NAME \
+            --package-version $VERSION \
+            --package-repo-name $REPO_NAME \
+            --key "${{ secrets.TRIVY_TEST_PKEY }}" \
+            --key-alias ${{ vars.TRIVY_TEST_KEY }} \
+            --predicate ./trivy-results.json \
+            --predicate-type http://aquasec.com/trivy/security-scan \
+            --markdown trivy-results.md
+          echo "Trivy evidence attached to package"
