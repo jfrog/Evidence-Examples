@@ -1,0 +1,53 @@
+image: docker:stable
+
+services:
+  - docker:dind
+
+variables:
+  REPO_NAME: "docker-sample"
+  BUILD_NAME: "gitlab-evidence-docker-build"
+  BUILD_NUMBER: "${CI_PIPELINE_ID}"
+  PACKAGE_NAME: "gitlab-evidence-app"
+  PACKAGE_VERSION: "${CI_COMMIT_SHORT_SHA}"
+  PREDICATE_FILE: "./gl-sbom-report.cdx.json"
+  PREDICATE_TYPE: "https://cyclonedx.org/schema"
+  DOCKER_IMAGE_NAME_WITH_TAG: ${REGISTRY_URL}/${REPO_NAME}/${PACKAGE_NAME}:${CI_COMMIT_SHORT_SHA}
+  MARKDOWN_FILE: "GitLab_SBOM.md"
+
+stages:
+  - build_and_push
+  - container_scanning
+  - create_md_file_and_attach_evidence
+
+build_and_push:
+  stage: build_and_push
+  before_script:
+    - apk update
+    - apk add go curl
+    - curl -fL https://install-cli.jfrog.io | sh
+    - jf config add --url ${ARTIFACTORY_URL} --access-token ${ARTIFACTORY_ACCESS_TOKEN} --interactive=false
+  script:
+    - docker build -f ./Dockerfile -t $DOCKER_IMAGE_NAME_WITH_TAG ./
+    - jf rt docker-push ${DOCKER_IMAGE_NAME_WITH_TAG} $REPO_NAME --build-name=$BUILD_NAME --build-number=${BUILD_NUMBER}
+    - jf rt build-publish ${BUILD_NAME} ${BUILD_NUMBER}
+
+include:
+  - template: Jobs/Container-Scanning.gitlab-ci.yml
+
+container_scanning:
+  stage: container_scanning
+  variables:
+    CS_IMAGE: ${DOCKER_IMAGE_NAME_WITH_TAG}
+    CS_REGISTRY_USER: ${REGISTRY_USER}
+    CS_REGISTRY_PASSWORD: ${REGISTRY_PASSWORD}
+
+create_md_file_and_attach_evidence:
+  stage: create_md_file_and_attach_evidence
+  before_script:
+    - apk update
+    - apk add python3 py3-pip go curl
+    - curl -fL https://install-cli.jfrog.io | sh
+    - jf config add --url ${ARTIFACTORY_URL} --access-token ${ARTIFACTORY_ACCESS_TOKEN} --interactive=false
+  script:
+    - python3 json-to-md.py
+    - jf evd create --package-name="${PACKAGE_NAME}" --package-version="${PACKAGE_VERSION}" --package-repo-name="${REPO_NAME}" --key="${PRIVATE_KEY}" --key-alias="${PRIVATE_KEY_ALIAS}" --predicate="${PREDICATE_FILE}" --predicate-type="${PREDICATE_TYPE}" --markdown="${MARKDOWN_FILE}"
