@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Build and publish Docker Image to Artifactory
         run: |
-          docker build . --file ./examples/trivy/Dockerfile --tag $REGISTRY_DOMAIN/$REPO_NAME/$IMAGE_NAME:$VERSION
+          docker build . --file ./examples/aquasecurity/trivy/Dockerfile --tag $REGISTRY_DOMAIN/$REPO_NAME/$IMAGE_NAME:$VERSION
           echo "Pushing Docker Image to Artifactory"
           jf rt docker-push $REGISTRY_DOMAIN/$REPO_NAME/$IMAGE_NAME:$VERSION $REPO_NAME --build-name=$BUILD_NAME --build-number=${{ github.run_number }}
           echo "Pushing Docker Image to Artifactory completed"
@@ -48,7 +48,8 @@ jobs:
       - name: Generate optional custom markdown report
         if: env.ATTACH_OPTIONAL_CUSTOM_MARKDOWN_TO_EVIDENCE == 'true'
         run: |
-          python ./examples/trivy/trivy_json_to_markdown_helper.py trivy-results.json
+          cat trivy-results.json
+          python ./examples/aquasecurity/trivy/trivy_json_to_markdown_helper.py trivy-results.json
 
       # Attaching the evidence to associated package
       - name: Attach evidence using jfrog cli

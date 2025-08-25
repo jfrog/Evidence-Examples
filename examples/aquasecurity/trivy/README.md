@@ -127,7 +127,7 @@ Once the workflow completes successfully, you can navigate to your repository in
 * **Build Docker Image:**
 
 ```
-docker build . --file ./examples/trivy-verify-example/Dockerfile --tag $REGISTRY_URL/$REPO_NAME/$IMAGE_NAME:$VERSION
+docker build . --file ./examples/aquasecurity/trivy-verify-example/Dockerfile --tag $REGISTRY_URL/$REPO_NAME/$IMAGE_NAME:$VERSION
 ```
 
 * **Run Trivy Scan:**

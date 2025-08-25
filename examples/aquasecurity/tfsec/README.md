@@ -59,7 +59,7 @@ You can trigger the workflow manually from the GitHub Actions tab. The workflow 
 ## Key Commands Used
 
 - **Publish Terraform Package:**
-  The workflow begins by configuring the JFrog CLI for Terraform and then publishes the code in the `examples/tfsec` directory as a versioned module to your Artifactory instance. It concludes by publishing the associated build information.
+  The workflow begins by configuring the JFrog CLI for Terraform and then publishes the code in the `examples/aquasecurity/tfsec` directory as a versioned module to your Artifactory instance. It concludes by publishing the associated build information.
   
   ```bash
   jf tfc --repo-deploy tf-local \

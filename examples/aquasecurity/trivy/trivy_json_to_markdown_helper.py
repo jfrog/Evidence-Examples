@@ -64,6 +64,10 @@ This section lists all detected vulnerabilities, categorized by the type of pack
 """
 
     for result in trivy_output['Results']:
+        # Skip if Results key does not have a "Vulnerabilities" key or if Vulnerabilities is empty
+        if 'Vulnerabilities' not in result or not result['Vulnerabilities']:
+            continue
+            
         package_class = result['Class']
         target = result['Target']
 

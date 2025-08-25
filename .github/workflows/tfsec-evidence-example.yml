@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           sparse-checkout: |
-            examples/tfsec/**
+            examples/aquasecurity/tfsec/**
           sparse-checkout-cone-mode: false
       - name: Publish to JFrog Artifactory
         run: |
@@ -48,7 +48,7 @@ jobs:
         run: |
           pwd
           ls -al
-          python ./examples/tfsec/tfsec_json_to_markdown_helper.py tfsec.json
+          python ./examples/aquasecurity/tfsec/tfsec_json_to_markdown_helper.py tfsec.json
 
       # Attaching the evidence to associated package
       - name: Attach evidence using jfrog cli
