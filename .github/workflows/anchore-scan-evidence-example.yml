@@ -56,4 +56,5 @@ jobs:
             --key-alias "${{ vars.EVIDENCE_KEY_ALIAS }}" \
             --predicate ./anchore-scan-results.sarif \
             --predicate-type http://anchore.com/grype/vulnerabilities/v1 \
+            --provider-id "anchore" \
             ${{ env.ATTACH_OPTIONAL_CUSTOM_MARKDOWN_TO_EVIDENCE == 'true' && '--markdown "anchore-results.md"' || '' }}

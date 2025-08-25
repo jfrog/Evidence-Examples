@@ -92,6 +92,7 @@ You can trigger the workflow manually from the GitHub Actions tab. The workflow 
     --key "${{ secrets.PRIVATE_KEY }}" \
     --key-alias "${{ vars.EVIDENCE_KEY_ALIAS }}" \
     --predicate ./anchore-sbom.json \
+    --provider-id "anchore" \
     --predicate-type http://anchore.com/syft/sbom/v1
   ```
 

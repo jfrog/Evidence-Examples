@@ -54,5 +54,6 @@ jobs:
               --key-alias "${{ vars.EVIDENCE_KEY_ALIAS }}" \
               --predicate ./anchore-sbom.json \
               --predicate-type http://anchore.com/syft/sbom/v1 \
+              --provider-id "anchore" \
               ${{ env.ATTACH_OPTIONAL_CUSTOM_MARKDOWN_TO_EVIDENCE == 'true' && '--markdown "anchore-sbom.md"' || '' }}
 

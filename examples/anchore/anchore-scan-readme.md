@@ -94,6 +94,7 @@ You can trigger the workflow manually from the GitHub Actions tab. The workflow 
     --key "${{ secrets.PRIVATE_KEY }}" \
     --key-alias "${{ vars.EVIDENCE_KEY_ALIAS }}" \
     --predicate ./anchore-scan-results.sarif \
+    --provider-id "anchore" \
     --predicate-type http://anchore.com/grype/vulnerabilities/v1
   ```
 
