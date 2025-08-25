@@ -149,6 +149,7 @@ jf evd create \
   --key-alias "${PRIVATE_KEY_ALIAS}" \
   --predicate "${PREDICATE_FILE}" \
   --predicate-type "${PREDICATE_TYPE}" \
+  --provider-id="gitlab" \
   --markdown "${MARKDOWN_FILE}"
 ```
 

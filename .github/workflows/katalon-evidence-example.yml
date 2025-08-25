@@ -146,6 +146,7 @@ jobs:
           $packageVersion = "${{ env.TAG_NAME }}"
           $packageRepoName = "${{ env.REPO_NAME }}"
           $predicatePath = "reports\katalon-results.json"
+          $providerId = "katalon"
           $predicateType = "http://katalon.com/test-results/v1"
           $privateKey = "${{ secrets.PRIVATE_KEY }}"
           $privateKeyAlias = "${{ secrets.PRIVATE_KEY_ALIAS }}"
@@ -156,6 +157,7 @@ jobs:
               "--package-repo-name", $packageRepoName,
               "--key", $privateKey, 
               "--key-alias", $privateKeyAlias,
+              "--provider-id", $providerId,
               "--predicate", $predicatePath,
               "--predicate-type", $predicateType
           )

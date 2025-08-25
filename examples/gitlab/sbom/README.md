@@ -64,7 +64,7 @@ Trigger the pipeline in GitLab CI/CD. The pipeline will:
 - **Build Docker Image:**
   The pipeline first builds a Docker image from the specified Dockerfile and then pushes it to your Artifactory instance using the JFrog CLI.
   ```bash
-  docker build -f ./examples/gitlab-sbom/Dockerfile -t $DOCKER_IMAGE_NAME_WITH_TAG ./examples/gitlab-sbom
+  docker build -f ./examples/gitlab/sbom/Dockerfile -t $DOCKER_IMAGE_NAME_WITH_TAG ./examples/gitlab/sbom
   ```
 - **Push Docker Image:**
   ```bash
@@ -78,7 +78,7 @@ Trigger the pipeline in GitLab CI/CD. The pipeline will:
 - **Attach Evidence:**
   The jf evd create command attaches the original SBOM report to the Docker image package in Artifactory. This creates a permanent, tamper-proof link between your image and its complete list of software components.
   ```bash
-  jf evd create --package-name="${PACKAGE_NAME}" --package-version="${PACKAGE_VERSION}" --package-repo-name="${REPO_NAME}" --key="${PRIVATE_KEY}" --key-alias="${PRIVATE_KEY_ALIAS}" --predicate="${PREDICATE_FILE}" --predicate-type="${PREDICATE_TYPE}" --markdown="${MARKDOWN_FILE}"
+  jf evd create --package-name="${PACKAGE_NAME}" --package-version="${PACKAGE_VERSION}" --package-repo-name="${REPO_NAME}" --key="${PRIVATE_KEY}" --key-alias="${PRIVATE_KEY_ALIAS}" --predicate="${PREDICATE_FILE}" --predicate-type="${PREDICATE_TYPE}" --provider-id="gitlab" --markdown="${MARKDOWN_FILE}"
   ```
 
 ## References

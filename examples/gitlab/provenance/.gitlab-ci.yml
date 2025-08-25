@@ -62,7 +62,7 @@ create_md_file_and_attach_evidence:
         echo "No artifacts metadata file found: ${PREDICATE_FILE}"
       fi
     - python3 json-to-md.py
-    - jf evd create --package-name="${PACKAGE_NAME}" --package-version="${PACKAGE_VERSION}" --package-repo-name="${REPO_NAME}" --key="${PRIVATE_KEY}" --key-alias="${PRIVATE_KEY_ALIAS}" --predicate="${PREDICATE_FILE}" --predicate-type="${PREDICATE_TYPE}" --markdown="${MARKDOWN_FILE}"
+    - jf evd create --package-name="${PACKAGE_NAME}" --package-version="${PACKAGE_VERSION}" --package-repo-name="${REPO_NAME}" --key="${PRIVATE_KEY}" --key-alias="${PRIVATE_KEY_ALIAS}" --predicate="${PREDICATE_FILE}" --predicate-type="${PREDICATE_TYPE}" --provider-id="gitlab" --markdown="${MARKDOWN_FILE}"
   dependencies:
     - build_and_publish
   needs:

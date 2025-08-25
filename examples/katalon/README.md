@@ -154,6 +154,7 @@ Once the workflow completes successfully, you can navigate to your repository in
       "--package-repo-name", $packageRepoName,
       "--key", $privateKey, 
       "--key-alias", $privateKeyAlias,
+      "--provider-id", "katalon",
       "--predicate", $predicatePath,
       "--predicate-type", $predicateType
   )
