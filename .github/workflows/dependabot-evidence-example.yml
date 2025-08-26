@@ -28,7 +28,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Build and Push Docker Image to Artifactory
         run: |
-          docker build -f ./examples/dependabot/Dockerfile . --tag $REGISTRY_DOMAIN/$REPO_NAME/$IMAGE_NAME:$VERSION
+          docker build -f ./examples/github/dependabot/Dockerfile . --tag $REGISTRY_DOMAIN/$REPO_NAME/$IMAGE_NAME:$VERSION
           jf rt docker-push $REGISTRY_DOMAIN/$REPO_NAME/$IMAGE_NAME:$VERSION $REPO_NAME --build-name=$BUILD_NAME --build-number=$VERSION
 
       # Fetch Dependabot Vulnerability Snapshot
@@ -64,7 +64,7 @@ jobs:
           IMAGE_ID=$(docker images --format "{{.ID}}" "$ARTIFACT_NAME")
           IMAGE_SIZE=$(docker images --format "{{.Size}}" "$ARTIFACT_NAME" | sed 's/MB//' | awk '{print $1 * 1024 * 1024}')
           SCAN_DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-          python ./examples/dependabot/markdown_helper.py \
+          python ./examples/github/dependabot/markdown_helper.py \
             "dependabot.json" \
             "dependabot_report.md" \
             "$REGISTRY_DOMAIN/$REPO_NAME/$IMAGE_NAME:$VERSION" \
@@ -83,4 +83,5 @@ jobs:
             --key-alias "${{ vars.EVIDENCE_KEY_ALIAS }}" \
             --predicate ./dependabot.json \
             --predicate-type http://Github.com/Dependabot/static-analysis \
+            --provider-id "github" \
             ${{ env.ATTACH_OPTIONAL_CUSTOM_MARKDOWN_TO_EVIDENCE == 'true' && '--markdown "dependabot_report.md"' || '' }}

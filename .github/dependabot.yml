@@ -1,6 +1,6 @@
 version: 2
 updates:
   - package-ecosystem: "pip"
-    directory: "/examples/dependabot"
+    directory: "/examples/github/dependabot"
     schedule:
       interval: "monthly"

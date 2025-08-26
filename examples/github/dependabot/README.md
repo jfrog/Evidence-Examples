@@ -72,7 +72,7 @@ The Fetch Dependabot Vulnerability Snapshot step retrieves Dependabot alerts and
   The workflow first builds a Docker image and pushes it to your Artifactory instance. This image acts as the "subject" to which the Dependabot evidence will be attached.
   
   ```bash
-    docker build -f ./examples/dependabot/Dockerfile . --tag $REGISTRY_DOMAIN/$REPO_NAME/$IMAGE_NAME:$VERSION
+    docker build -f ./examples/github/dependabot/Dockerfile . --tag $REGISTRY_DOMAIN/$REPO_NAME/$IMAGE_NAME:$VERSION
     jf rt docker-push $REGISTRY_DOMAIN/$REPO_NAME/$IMAGE_NAME:$VERSION $REPO_NAME --build-name=$BUILD_NAME --build-number=$VERSION
   ```
 - **Fetch Dependabot Vulnerability Snapshot**
@@ -108,6 +108,7 @@ The Fetch Dependabot Vulnerability Snapshot step retrieves Dependabot alerts and
             --package-repo-name $REPO_NAME \
             --key "${{ secrets.TEST_PRVT_KEY }}" \
             --key-alias ${{ vars.TEST_PUB_KEY_ALIAS }} \
+            --provider-id "github" \
             --predicate ./dependabot.json \
             --predicate-type http://Github.com/Dependabot/static-analysis
   ```

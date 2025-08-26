@@ -18,9 +18,9 @@ jobs:
       matrix:
         language_details:
           - name: javascript
-            queries_path: ./examples/codeql/queries/js
+            queries_path: ./examples/github/codeql/queries/js
           - name: go
-            queries_path: ./examples/codeql/queries/go
+            queries_path: ./examples/github/codeql/queries/go
 
     steps:
       # Build and publish the packages to JFrog Artifactory
@@ -32,12 +32,12 @@ jobs:
       - uses: actions/checkout@v4
         with:
           sparse-checkout: |
-            examples/codeql/**
+            examples/github/codeql/**
           sparse-checkout-cone-mode: false
       - name: Build and Publish ${{ matrix.language_details.name }} package
         env:
-          GO_CODE_PATH: examples/codeql/go
-          JS_CODE_PATH: examples/codeql/js
+          GO_CODE_PATH: examples/github/codeql/go
+          JS_CODE_PATH: examples/github/codeql/js
         run: |
           if [ ${{ matrix.language_details.name }} == 'go' ]; then
             cd $GO_CODE_PATH
@@ -62,7 +62,7 @@ jobs:
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language_details.name }}
-          config-file: examples/codeql/codeql-config.yml
+          config-file: examples/github/codeql/codeql-config.yml
           queries: ${{ matrix.language_details.queries_path }}
 
       - name: Run CodeQL Analysis for ${{ matrix.language_details.name }}
@@ -76,7 +76,7 @@ jobs:
       - name: Generate optional custom markdown report
         if: env.ATTACH_OPTIONAL_CUSTOM_MARKDOWN_TO_EVIDENCE == 'true'
         run: |
-          python ./examples/codeql/sarif_to_markdown.py \
+          python ./examples/github/codeql/sarif_to_markdown.py \
             results-${{ matrix.language_details.name }}/${{ matrix.language_details.name }}.sarif \
             results-${{ matrix.language_details.name }}/${{ matrix.language_details.name }}-report.md
 
@@ -104,5 +104,6 @@ jobs:
             --key-alias "${{ vars.EVIDENCE_KEY_ALIAS }}" \
             --predicate "results-javascript/javascript.sarif" \
             --predicate-type "http://github.com/CodeQL/static-analysis" \
+            --provider-id "github" \
             ${{ env.ATTACH_OPTIONAL_CUSTOM_MARKDOWN_TO_EVIDENCE == 'true' && '--markdown "results-javascript/javascript-report.md"' || '' }}
           fi

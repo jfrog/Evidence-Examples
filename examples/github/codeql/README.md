@@ -94,6 +94,7 @@ jf evd create \
 --key-alias ${{ vars.CODEQL_KEY_ALIAS }} \
 --predicate "results-javascript/javascript.sarif" \
 --predicate-type "http://github.com/CodeQL/static-analysis" \
+--provider-id "github" \
 --markdown "results-javascript/javascript-report.md"
 ```
 

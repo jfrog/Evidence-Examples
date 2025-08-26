@@ -13,4 +13,4 @@ paths-ignore:
   - '**/*.spec.ts'
 
 paths:
-  - examples/codeql/
+  - examples/github/codeql/
