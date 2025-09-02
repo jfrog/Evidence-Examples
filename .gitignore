@@ -1,4 +1,4 @@
-/examples/sonar-scan-example/sonar-scanner-4.6.2.2472-linux/*
-/examples/sonar-scan-example/bin/*
-/examples/jira-transition-example/bin/*
+/examples/sonar-scan/sonar-scanner-4.6.2.2472-linux/*
+/examples/sonar-scan/bin/*
+/examples/jira/bin/*
 *.pem

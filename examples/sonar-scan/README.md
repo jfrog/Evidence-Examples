@@ -36,7 +36,7 @@ $PWD/sonar-scanner-6.2.1.4610/bin/sonar-scanner \
 ``
 3. call the jira-transition-checker utility (use the binary for your build platform) with these arguments: "transition name" JIRA-ID [,JIRA-ID]
 for example:
- ``./examples/sonar-scan-example/bin/sonar-scan-extractor-linux-amd64  --reportTaskFile=$PWD/.scannerwork/report-task.txt --FailOnAnalysisFailure > predicate.json
+ ``./examples/sonar-scan/bin/sonar-scan-extractor-linux-amd64  --reportTaskFile=$PWD/.scannerwork/report-task.txt --FailOnAnalysisFailure > predicate.json
 ``               
 4. call the evidence create cli with the predicate.json file
 for example:
@@ -46,6 +46,7 @@ jf evd create \
             --build-number "${{ github.run_number }}" \
             --predicate ./predicate.json \
             --predicate-type https://jfrog.com/evidence/sonar-scan/v1 \
+            --provider-id "sonar" \
             --key "${{ secrets.JIRA_TEST_PKEY }}" \
             --key-alias ${{ vars.JIRA_TEST_KEY }}
 ``

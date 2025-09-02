@@ -63,7 +63,7 @@ jobs:
           # create evidence from sonar-scan analysis
           set +e
           # --FailOnAnalysisFailure causes a failure on gateway-failed sonar analysis 
-          ./examples/sonar-scan-example/bin/sonar-scan-extractor-linux-amd64  --reportTaskFile=$PWD/.scannerwork/report-task.txt > predicate.json
+          ./examples/sonar-scan/bin/sonar-scan-extractor-linux-amd64  --reportTaskFile=$PWD/.scannerwork/report-task.txt > predicate.json
           EXIT_CODE=$?
           set -e          
           # write the exit code to the github output so that it can be used in the evidence creation step
@@ -117,5 +117,6 @@ jobs:
             --build-number "${{ github.run_number }}" \
             --predicate ./predicate.json \
             --predicate-type https://jfrog.com/evidence/sonar-scan/v1 \
+            --provider-id "sonar" \
             --key "${{ secrets.JIRA_TEST_PKEY }}" \
             --key-alias ${{ vars.JIRA_TEST_KEY }}
