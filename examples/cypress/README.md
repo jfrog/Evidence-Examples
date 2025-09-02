@@ -105,6 +105,7 @@ This final step uses `jf evd create` to attach the test results to the Docker im
     --key-alias "${{ secrets.PRIVATE_KEY_ALIAS }}" \
     --predicate "reports/overall-report.json" \
     --predicate-type "http://cypress.io/test-results/v1" \
+    --provider-id "cypress" \
     [--markdown "reports/cypress-results.md"]
   ```
     The --markdown flag is included only if ATTACH_OPTIONAL_MARKDOWN_TO_EVIDENCE is set to true.

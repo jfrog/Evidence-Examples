@@ -74,4 +74,5 @@ jobs:
           --key-alias "${{ secrets.PRIVATE_KEY_ALIAS }}" \
           --predicate "reports/overall-report.json" \
           --predicate-type "http://cypress.io/test-results/v1" \
+          --provider-id "cypress" \
           ${{ env.ATTACH_OPTIONAL_MARKDOWN_TO_EVIDENCE == 'true' && '--markdown "reports/cypress-results.md"' || '' }}

@@ -230,6 +230,7 @@ jf evd create \
     --key-alias "${{ vars.EVIDENCE_KEY_ALIAS }}" \
     --predicate ./examples/jira/helper/transformed_jira_data.json \
     --predicate-type http://atlassian.com/jira/issues/v1 \
+    --provider-id "jira" \
     ${{ env.ATTACH_OPTIONAL_CUSTOM_MARKDOWN_TO_EVIDENCE == 'true' && '--markdown "examples/jira/helper/transformed_jira_data.md"' || '' }}
 ```
 

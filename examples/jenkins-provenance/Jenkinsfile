@@ -9,6 +9,7 @@ pipeline {
             MARKDOWN_FILE_NAME = 'JenkinsSLSA.md'
             PREDICATE_FILE_NAME = '${PROJECT_WORKING_DIR}/predicate.json'
             PREDICATE_TYPE = 'http://slsa.dev/provenance/v1'
+            PROVIDER_ID = 'jenkins'
     }
     stages {
         stage('Checkout') {
@@ -65,6 +66,7 @@ pipeline {
             --key-alias ${KEY_ALIAS} \
             --predicate ${PREDICATE_FILE_NAME} \
             --predicate-type ${PREDICATE_TYPE} \
+            --provider-id ${PROVIDER_ID} \
             --markdown ${MARKDOWN_FILE_NAME}'
             }
         }

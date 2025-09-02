@@ -126,6 +126,7 @@ You can trigger the workflow manually from the GitHub Actions tab. The workflow 
   --key-alias "${{ secrets.PRIVATE_KEY_ALIAS }}" \
   --predicate "reports/overall-report.json" \
   --predicate-type "http://testrail.com/test-results" \
+  --provider-id "testrail" \
   [--markdown "reports/results.md"]
   ```
     The --markdown flag is included only if ATTACH_OPTIONAL_MARKDOWN_TO_EVIDENCE is set to true.

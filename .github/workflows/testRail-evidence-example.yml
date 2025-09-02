@@ -86,4 +86,5 @@ jobs:
           --key-alias "${{ secrets.PRIVATE_KEY_ALIAS }}" \
           --predicate "reports/overall-report.json" \
           --predicate-type "http://testrail.com/test-results" \
+          --provider-id "testrail" \
           ${{ env.ATTACH_OPTIONAL_MARKDOWN_TO_EVIDENCE == 'true' && '--markdown "reports/results.md"' || '' }}

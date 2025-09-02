@@ -97,6 +97,7 @@ jobs:
               --key-alias "${{ vars.EVIDENCE_KEY_ALIAS }}" \
               --predicate ./target/consolidated-test-report.json \
               --predicate-type https://jfrog.com/evidence/junit-test-results/v1 \
+              --provider-id "junit" \
               ${{ env.ATTACH_OPTIONAL_CUSTOM_MARKDOWN_TO_EVIDENCE == 'true' && '--markdown "junit-results.md"' || '' }}
           else
             echo "No test results found to attach as evidence"

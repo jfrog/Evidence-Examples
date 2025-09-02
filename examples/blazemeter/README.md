@@ -160,6 +160,7 @@ Once the workflow completes successfully, you can navigate to your repository in
     --key-alias "$PRIVATE_KEY_ALIAS" \
     --predicate "blazemeter-predicate.json" \
     --predicate-type "http://blazemeter.com/performance-results/v1" \
+    --provider-id "blazemeter" \
     ${{ env.ATTACH_OPTIONAL_MARKDOWN_TO_EVIDENCE == 'true' && '--markdown "blazemeter-results.md"' || '' }}
   ```
 

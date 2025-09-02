@@ -167,6 +167,7 @@ jf evd create \
   --key-alias "${{ vars.EVIDENCE_KEY_ALIAS }}" \
   --predicate ./target/consolidated-test-report.json \
   --predicate-type http://junit.org/test-results \
+  --provider-id "junit" \
   --markdown "junit-results.md"
 ```
 
