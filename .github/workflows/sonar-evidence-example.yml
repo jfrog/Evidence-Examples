@@ -58,7 +58,7 @@ jobs:
             -Dsonar.projectKey=my-evidence-test-org1_evidence-example \
             -Dsonar.organization=my-evidence-test-org1 \
             -Dsonar.java.jdkHome=$JAVA_HOME \
-            -Dsonar.verbose=true \
+            -Dsonar.verbose=true
 
       - name: Log in to Artifactory Docker Registry
         uses: docker/login-action@v3
