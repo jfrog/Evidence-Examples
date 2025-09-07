@@ -48,33 +48,17 @@ jobs:
           java-version: '21' # Specify the desired Java version here
           distribution: 'temurin' # You can also use 'temurin', 'zulu', etc.
 
-      - name: Run SonarScanner
-        id: run-sonar-scanner
+      - name: Sonar scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        continue-on-error: true  # Don't fail build on SonarCloud quality gate issues
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          $PWD/sonar-scanner-6.2.1.4610/bin/sonar-scanner \
-            -Dsonar.projectKey=test-evidence \
-            -Dsonar.organization=my-evidence-test-org \
-            -Dsonar.host.url=https://sonarcloud.io \
+        with:
+          args: >
+            -Dsonar.projectKey=my-evidence-test-org1_evidence-example \
+            -Dsonar.organization=my-evidence-test-org1 \
             -Dsonar.java.jdkHome=$JAVA_HOME \
             -Dsonar.verbose=true \
-            -Dsonar.token=$SONAR_TOKEN
-          # create evidence from sonar-scan analysis
-          set +e
-          # --FailOnAnalysisFailure causes a failure on gateway-failed sonar analysis 
-          ./examples/sonar-scan/bin/sonar-scan-extractor-linux-amd64  --reportTaskFile=$PWD/.scannerwork/report-task.txt > predicate.json
-          EXIT_CODE=$?
-          set -e          
-          # write the exit code to the github output so that it can be used in the evidence creation step
-          echo "------predicate.json------"
-          cat predicate.json
-          echo "------sonar-scan.log------"
-          cat sonar-scan.log
-          echo "------EXIT------"
-          echo "create-sonar-evidence=$EXIT_CODE" 
-          echo "create-sonar-evidence=$EXIT_CODE" >> $GITHUB_OUTPUT 
-     
 
       - name: Log in to Artifactory Docker Registry
         uses: docker/login-action@v3
@@ -115,8 +99,6 @@ jobs:
           jf evd create \
             --build-name $GITHUB_WORKFLOW \
             --build-number "${{ github.run_number }}" \
-            --predicate ./predicate.json \
-            --predicate-type https://jfrog.com/evidence/sonar-scan/v1 \
-            --provider-id "sonar" \
             --key "${{ secrets.JIRA_TEST_PKEY }}" \
-            --key-alias ${{ vars.JIRA_TEST_KEY }}
+            --key-alias ${{ vars.JIRA_TEST_KEY }} \
+            --integration sonar
