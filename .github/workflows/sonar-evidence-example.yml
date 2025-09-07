@@ -6,8 +6,8 @@ on:
     branches:
       - CCS-2-Additional_evidence_examples
   pull_request:
-      branches:
-        - CCS-2-Additional_evidence_examples
+    branches:
+      - CCS-2-Additional_evidence_examples
 permissions:
   id-token: write
   contents: read
@@ -25,28 +25,15 @@ jobs:
           echo "Job name: $GITHUB_JOB"
 
       - name: Install jfrog cli
-        id:   setup-cli
+        id: setup-cli
         uses: jfrog/setup-jfrog-cli@v4
         env:
           JF_URL: ${{ vars.ARTIFACTORY_URL }}
         with:
-         oidc-provider-name: jfrog-github-oidc
+          oidc-provider-name: jfrog-github-oidc
+          version: latest
 
       - uses: actions/checkout@v4
-
-      - name: Install SonarQube Scanner
-        run: |          
-          curl -sL  -sSLo sonar-scanner.zip  https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-6.2.1.4610.zip
-          unzip sonar-scanner.zip
-          export PATH=$PATH:$PWD/sonar-scanner-6.2.1.4610/bin
-          pwd
-          ls -l $PWD/sonar-scanner-6.2.1.4610/bin/
-          echo "$PWD/sonar-scanner-6.2.1.4610/bin"
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21' # Specify the desired Java version here
-          distribution: 'temurin' # You can also use 'temurin', 'zulu', etc.
 
       - name: Sonar scan
         uses: SonarSource/sonarqube-scan-action@v5
@@ -55,9 +42,9 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
           args: >
-            -Dsonar.projectKey=my-evidence-test-org1_evidence-example \
-            -Dsonar.organization=my-evidence-test-org1 \
-            -Dsonar.java.jdkHome=$JAVA_HOME \
+            -Dsonar.projectKey=my-evidence-test-org1_evidence-example
+            -Dsonar.organization=my-evidence-test-org1
+            -Dsonar.java.jdkHome=$JAVA_HOME
             -Dsonar.verbose=true
 
       - name: Log in to Artifactory Docker Registry
@@ -94,7 +81,7 @@ jobs:
 
       - name: Create evidence
         if: ${{ steps.run-sonar-scanner.outputs.create-sonar-evidence == 0 }}
-        run: |            
+        run: |
           # Attach evidence onto build using JFrog CLI                
           jf evd create \
             --build-name $GITHUB_WORKFLOW \
