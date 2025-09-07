@@ -85,7 +85,7 @@ jobs:
       - name: Create evidence
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_REPORT_TASK_PATH: ${{ github.workspace }}/examples/sonar-scan/.scannerwork/report-task.txt
+          SONAR_REPORT_TASK_FILE: ${{ github.workspace }}/examples/sonar-scan/.scannerwork/report-task.txt
         run: |
           # Attach evidence onto build using JFrog CLI                
           jf evd create \
