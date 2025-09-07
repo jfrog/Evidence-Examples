@@ -44,6 +44,9 @@ jobs:
           args: >
             -Dsonar.projectKey=my-evidence-test-org1_evidence-example
             -Dsonar.organization=my-evidence-test-org1
+            -Dsonar.projectBaseDir=examples/sonar-scan
+            -Dsonar.sources=.
+            -Dsonar.inclusions=**/*.go
             -Dsonar.java.jdkHome=$JAVA_HOME
             -Dsonar.verbose=true
 
