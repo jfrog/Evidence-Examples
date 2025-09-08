@@ -89,8 +89,8 @@ jobs:
         run: |
           # Attach evidence onto build using JFrog CLI                
           jf evd create \
+            --integration sonar \
             --build-name $GITHUB_WORKFLOW \
             --build-number "${{ github.run_number }}" \
             --key "${{ secrets.PRIVATE_KEY }}" \
-            --key-alias ${{ vars.PRIVATE_KEY_ALIAS }} \
-            --integration sonar
+            --key-alias ${{ vars.PRIVATE_KEY_ALIAS }} 
