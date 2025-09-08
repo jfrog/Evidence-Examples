@@ -3,7 +3,7 @@
 This example shows how to create and attach Sonar analysis evidence using the JFrog CLI.
 
 ### Prerequisites
-- SONAR_TOKEN: SonarCloud/SonarQube token with rights to read analysis status/results.
+- SONAR_TOKEN: SonarCloud/SonarQube token.
 - A completed Sonar scan that produced a `report-task.txt` file.
 
 ### Default report-task.txt discovery
