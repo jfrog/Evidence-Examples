@@ -28,8 +28,8 @@ If the file is not found, configure its location via YAML or env var (see below)
     jf evd create \
       --build-name $GITHUB_WORKFLOW \
       --build-number "${{ github.run_number }}" \
-      --key "${{ secrets.JIRA_TEST_PKEY }}" \
-      --key-alias ${{ vars.JIRA_TEST_KEY }} \
+      --key "${{ secrets.SIGNING_KEY }}" \
+      --key-alias ${{ vars.SIGNING_KEY_ALIAS }} \
       --integration sonar
 ```
 
@@ -55,7 +55,7 @@ sonar:
 Evidence creation:
 
 - --integration sonar
-  - Selects the Sonar integration. Required.
+  - Selects the Sonar integration.
 
 Sonar resolution (via YAML/env):
 
