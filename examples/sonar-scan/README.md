@@ -36,7 +36,7 @@ If the file is not found, configure its location via YAML or env var (see below)
 ### Configuration
 You can configure the integration via YAML or environment variables. YAML keys have 1:1 env equivalents.
 
-1) YAML: ./jfrog/evidence/evidence.yml
+1) YAML: .jfrog/evidence/evidence.yml
 ```yaml
 sonar:
   url: https://sonarcloud.io
