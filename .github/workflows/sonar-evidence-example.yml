@@ -6,8 +6,8 @@ on:
     branches:
       - CCS-2-Additional_evidence_examples
   pull_request:
-      branches:
-        - CCS-2-Additional_evidence_examples
+    branches:
+      - CCS-2-Additional_evidence_examples
 permissions:
   id-token: write
   contents: read
@@ -25,56 +25,30 @@ jobs:
           echo "Job name: $GITHUB_JOB"
 
       - name: Install jfrog cli
-        id:   setup-cli
+        id: setup-cli
         uses: jfrog/setup-jfrog-cli@v4
         env:
           JF_URL: ${{ vars.ARTIFACTORY_URL }}
         with:
-         oidc-provider-name: jfrog-github-oidc
+          oidc-provider-name: jfrog-github-oidc
+          version: latest
 
       - uses: actions/checkout@v4
 
-      - name: Install SonarQube Scanner
-        run: |          
-          curl -sL  -sSLo sonar-scanner.zip  https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-6.2.1.4610.zip
-          unzip sonar-scanner.zip
-          export PATH=$PATH:$PWD/sonar-scanner-6.2.1.4610/bin
-          pwd
-          ls -l $PWD/sonar-scanner-6.2.1.4610/bin/
-          echo "$PWD/sonar-scanner-6.2.1.4610/bin"
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '21' # Specify the desired Java version here
-          distribution: 'temurin' # You can also use 'temurin', 'zulu', etc.
-
-      - name: Run SonarScanner
-        id: run-sonar-scanner
+      - name: Sonar scan
+        uses: SonarSource/sonarqube-scan-action@v5
+        continue-on-error: true  # Don't fail build on SonarCloud quality gate issues
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: |
-          $PWD/sonar-scanner-6.2.1.4610/bin/sonar-scanner \
-            -Dsonar.projectKey=test-evidence \
-            -Dsonar.organization=my-evidence-test-org \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.java.jdkHome=$JAVA_HOME \
-            -Dsonar.verbose=true \
-            -Dsonar.token=$SONAR_TOKEN
-          # create evidence from sonar-scan analysis
-          set +e
-          # --FailOnAnalysisFailure causes a failure on gateway-failed sonar analysis 
-          ./examples/sonar-scan/bin/sonar-scan-extractor-linux-amd64  --reportTaskFile=$PWD/.scannerwork/report-task.txt > predicate.json
-          EXIT_CODE=$?
-          set -e          
-          # write the exit code to the github output so that it can be used in the evidence creation step
-          echo "------predicate.json------"
-          cat predicate.json
-          echo "------sonar-scan.log------"
-          cat sonar-scan.log
-          echo "------EXIT------"
-          echo "create-sonar-evidence=$EXIT_CODE" 
-          echo "create-sonar-evidence=$EXIT_CODE" >> $GITHUB_OUTPUT 
-     
+        with:
+          args: >
+            -Dsonar.projectKey=my-evidence-test-org1_evidence-example
+            -Dsonar.organization=my-evidence-test-org1
+            -Dsonar.projectBaseDir=examples/sonar-scan
+            -Dsonar.sources=.
+            -Dsonar.inclusions=**/*.go
+            -Dsonar.java.jdkHome=$JAVA_HOME
+            -Dsonar.verbose=true
 
       - name: Log in to Artifactory Docker Registry
         uses: docker/login-action@v3
@@ -109,14 +83,14 @@ jobs:
           jf rt build-publish         
 
       - name: Create evidence
-        if: ${{ steps.run-sonar-scanner.outputs.create-sonar-evidence == 0 }}
-        run: |            
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_REPORT_TASK_FILE: ${{ github.workspace }}/examples/sonar-scan/.scannerwork/report-task.txt
+        run: |
           # Attach evidence onto build using JFrog CLI                
           jf evd create \
+            --integration sonar \
             --build-name $GITHUB_WORKFLOW \
             --build-number "${{ github.run_number }}" \
-            --predicate ./predicate.json \
-            --predicate-type https://jfrog.com/evidence/sonar-scan/v1 \
-            --provider-id "sonar" \
-            --key "${{ secrets.JIRA_TEST_PKEY }}" \
-            --key-alias ${{ vars.JIRA_TEST_KEY }}
+            --key "${{ secrets.EVIDENCE_SIGNING_KEY }}" \
+            --key-alias "${{ vars.EVIDENCE_PUBLIC_KEY_ALIAS }}" 
