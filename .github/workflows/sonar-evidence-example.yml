@@ -91,6 +91,6 @@ jobs:
           jf evd create \
             --build-name $GITHUB_WORKFLOW \
             --build-number "${{ github.run_number }}" \
-            --key "${{ secrets.JIRA_TEST_PKEY }}" \
-            --key-alias ${{ vars.JIRA_TEST_KEY }} \
+            --key "${{ secrets.PRIVATE_KEY }}" \
+            --key-alias ${{ vars.PRIVATE_KEY_ALIAS }} \
             --integration sonar
