@@ -93,4 +93,4 @@ jobs:
             --build-name $GITHUB_WORKFLOW \
             --build-number "${{ github.run_number }}" \
             --key "${{ secrets.PRIVATE_KEY }}" \
-            --key-alias ${{ vars.PRIVATE_KEY_ALIAS }} 
+            --key-alias "${{ vars.JF_KEY_ALIAS }}" 
