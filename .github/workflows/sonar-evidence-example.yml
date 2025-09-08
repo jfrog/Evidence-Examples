@@ -92,5 +92,5 @@ jobs:
             --integration sonar \
             --build-name $GITHUB_WORKFLOW \
             --build-number "${{ github.run_number }}" \
-            --key "${{ secrets.PRIVATE_KEY }}" \
-            --key-alias "${{ vars.JF_KEY_ALIAS }}" 
+            --key "${{ secrets.EVIDENCE_SIGNING_KEY }}" \
+            --key-alias "${{ vars.EVIDENCE_PUBLIC_KEY_ALIAS }}" 
