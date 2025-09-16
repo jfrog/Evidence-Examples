@@ -11,7 +11,7 @@
     "@babel/preset-env": "^7.7.4",
     "babelify": "10.0.0",
     "browserify": "16.5.0",
-    "browserify-shim": "3.8.14",
+    "browserify-shim": "3.8.16",
     "del": "5.1.0",
     "gulp": "4.0.2",
     "gulp-connect": "5.7.0",
