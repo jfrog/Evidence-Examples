@@ -1,0 +1,90 @@
+name: "Preare docker evidence with prepare API example"
+
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+
+jobs:
+  prepare-docker-evidence-example:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call the prepare API
+        run: |
+          REQUEST=$(cat << EOF
+          {
+            "subject": {
+              "subject_type": "package",
+              "package_repo": "commons-dev-maven-local",
+              "package_name": "com.example:quote-of-day-service",
+              "package_version": "1.0.0"
+            },
+            "predicate": {
+              "statement": "This maven package is great."
+            },
+            "predicate_type": "https://example.com/evidence/statement/v1"
+          }
+          EOF
+          )
+          echo "Request: $REQUEST"
+          URL="${{ vars.ARTIFACTORY_URL }}/evidence/api/v1/evidence/prepare"
+          echo "URL: $URL"
+          [ "${{ secrets.ARTIFACTORY_ACCESS_TOKEN }}" == "" ] && echo "secrets.ARTIFACTORY_ACCESS_TOKEN is empty!" && exit 1
+          curl -X POST -H 'Content-Type: application/json' -H "Authorization: Bearer ${{ secrets.ARTIFACTORY_ACCESS_TOKEN }}" -d "$REQUEST" -o response.json "$URL"
+          echo "Response: $(cat response.json)"
+          # Make sure it is valid response
+          cat response.json | grep "dsse_payload"
+      - name: Sign the payload
+        run: |
+          BASE64_PAYLOAD=$(cat response.json | jq .dsse_payload | tr -d '"')
+          echo "Base64 payload: $BASE64_PAYLOAD"
+          PAYLOAD=$(echo -n "$BASE64_PAYLOAD" | base64 -d)
+          echo "Payload: $PAYLOAD"
+          PAYLOAD_TYPE=$(cat response.json | jq .dsse_payload_type | tr -d '"')
+          echo "Payload type: $PAYLOAD_TYPE"
+          PAYLOAD_LEN="${#PAYLOAD}"
+          PAYLOAD_TYPE_LEN="${#PAYLOAD_TYPE}"
+          PRE_AUTH_ENC="DSSEv1 $PAYLOAD_TYPE_LEN $PAYLOAD_TYPE $PAYLOAD_LEN $PAYLOAD"
+          echo "Pre-authentication encoding: $PRE_AUTH_ENC"
+          echo -n "${{ secrets.JIRA_TEST_PKEY }}" > key_file
+          PAYLOAD_SIGNATURE=$(echo -n "$PRE_AUTH_ENC" | openssl dgst -sha256 -sign key_file | openssl base64 | tr -d '\n')
+          [ "$?" != "0" -o "$PAYLOAD_SIGNATURE" == "" ] && echo "Failed to create signature." && exit 1
+          rm key_file
+          echo "Signature: $PAYLOAD_SIGNATURE"
+          echo -n "$PAYLOAD_SIGNATURE" > signature_file
+      - name: Build the DSSE
+        run: |
+          DSSE=$(cat << EOF
+          {
+            "payloadType": $(cat response.json | jq .dsse_payload_type),
+            "payload": $(cat response.json | jq .dsse_payload),
+            "signatures": [
+              {
+                "keyid": "${{ vars.JIRA_TEST_KEY }}",
+                "sig": "$(cat signature_file)"
+              }
+            ]
+          }
+          EOF
+          )
+          echo "DSSE: $DSSE"
+          echo -n "$DSSE" > dsse.json
+      - name: Create the evidence
+        run: |
+          POST_URL=$(cat response.json | jq .post_url | tr -d '"')
+          echo "POST_URL: $POST_URL"
+          URL="${{ vars.ARTIFACTORY_URL }}$POST_URL"
+          echo "URL: $URL"
+          BODY=$(cat dsse.json)
+          echo "BODY: $BODY"
+          echo 
+          echo
+          curl -X POST -H 'Content-Type: application/json' -H "Authorization: Bearer ${{ secrets.ARTIFACTORY_ACCESS_TOKEN }}" -d "$BODY" "$URL"
+          [ $? -ne 0 ] && echo "Failed to create evidece." && exit 1
+          echo
+          echo "Created evidence successfully :-)"
+
+
