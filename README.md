@@ -242,3 +242,5 @@ To see a sample rego policy, go here. For more information about integrating Rel
 
 - [JFrog CLI Command Reference](https://jfrog.com/help/r/jfrog-applications-and-cli-documentation/jfrog-cli)
 - [Release Lifecycle Management with CLI](https://jfrog.com/help/r/jfrog-applications-and-cli-documentation/release-lifecycle-management)
+
+
