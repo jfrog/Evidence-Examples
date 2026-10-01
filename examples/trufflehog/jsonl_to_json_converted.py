@@ -1,23 +1,35 @@
 import json
+import sys
 
-# Input and output file paths
-input_file = "trufflehog-results.jsonl"
-output_file = "trufflehog.json"
+from sanitize_trufflehog import sanitize_record
 
-# Read the JSONL file and convert it to a list of JSON objects
-with open(input_file, "r") as infile:
-    data = [json.loads(line) for line in infile]
+DEFAULT_INPUT_FILE = "trufflehog-results.jsonl"
+DEFAULT_OUTPUT_FILE = "trufflehog.json"
 
-# Wrap the data in a dictionary with the key "data"
-output_data = {"data": data}
 
-# Write the output to a JSON file with proper formatting
-with open(output_file, "w") as outfile:
-    outfile.write('{\n  "data": [\n')
-    for i, item in enumerate(data):
-        json.dump(item, outfile, indent=4)
-        if i < len(data) - 1:
-            outfile.write(',\n')
-    outfile.write('\n  ]\n}')
-    
-print(f"Converted {input_file} to {output_file}")
+def convert(input_file, output_file):
+    """Write an evidence predicate that keeps only non-secret finding fields."""
+    records = []
+    with open(input_file, "r", encoding="utf-8") as infile:
+        for line in infile:
+            stripped = line.strip()
+            if not stripped:
+                continue
+            records.append(sanitize_record(json.loads(stripped)))
+
+    with open(output_file, "w", encoding="utf-8") as outfile:
+        json.dump({"data": records}, outfile, indent=2)
+        outfile.write("\n")
+
+    print(f"Converted {input_file} to {output_file}")
+    return records
+
+
+def main(argv):
+    input_file = argv[1] if len(argv) > 1 else DEFAULT_INPUT_FILE
+    output_file = argv[2] if len(argv) > 2 else DEFAULT_OUTPUT_FILE
+    convert(input_file, output_file)
+
+
+if __name__ == "__main__":
+    main(sys.argv)

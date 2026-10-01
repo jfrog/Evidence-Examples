@@ -4,6 +4,12 @@ This repository provides a working example of a GitHub Actions workflow that aut
 
 This workflow is an essential DevSecOps practice, helping to prevent accidental secret leakage by creating a traceable and auditable record of what was found in your codebase at a specific point in time.
 
+### **Do not publish secret material as evidence**
+
+Evidence created with `jf evd create` is stored on the package. Anyone who can read that package or repository can read the evidence, including other teams, service accounts, and anonymous readers when the repository allows it. That audience is wider than the people who can read the source repository. Signed evidence also cannot be quietly edited later, so a secret written into it stays there.
+
+TruffleHog's JSON output includes the matched secret in `Raw` and `RawV2`, and sometimes again in `ExtraData`. This example strips those fields before anything is attached. The predicate and the optional Markdown report keep only non-secret metadata: detector name, source location, the `Redacted` value, and verification status.
+
 ### **Key Features**
 
 * **Automated Secret Scanning**: Uses Trufflehog to scan the repository for potential secrets and sensitive information.
@@ -98,8 +104,8 @@ Once the workflow completes successfully, you can navigate to your repository in
 
 1. **Setup and Checkout**: The workflow begins by setting up the JFrog CLI and checking out the repository code using sparse checkout to focus on the trufflehog example directory.
 2. **Run Trufflehog Secret Scan**: Uses Docker to run Trufflehog against the repository, scanning for potential secrets and sensitive information. The scan outputs results in JSON format.
-3. **Process Scan Results**: A Python helper script (`process_trufflehog_results.py`) parses the Trufflehog JSON output and generates a structured predicate file suitable for JFrog Evidence.
-4. **Generate Optional Markdown Report**: If ATTACH_OPTIONAL_CUSTOM_MARKDOWN_TO_EVIDENCE is true, the Python script creates a human-readable Markdown report summarizing the findings.
+3. **Build the evidence predicate**: `jsonl_to_json_converted.py` turns the JSONL scan into `trufflehog.json` and drops secret fields (`Raw`, `RawV2`, `ExtraData`, and anything outside the allowlist) before the file is attached.
+4. **Generate Optional Markdown Report**: If ATTACH_OPTIONAL_CUSTOM_MARKDOWN_TO_EVIDENCE is true, `process_trufflehog_results.py` writes a human-readable summary that includes the redacted value and location, and does not include the raw secret.
 5. **Attach Signed Evidence**: The final step uses the jf evd create command to attach the scan results as evidence to the specific package version in Artifactory. The evidence is signed using the provided private key, ensuring its authenticity and integrity.
 
 ### **Key Commands Used**
@@ -108,17 +114,18 @@ Once the workflow completes successfully, you can navigate to your repository in
   This step runs the `trufflesecurity/trufflehog` container to scan the entire checked-out repository. The results are output in a `.jsonl` (JSON Lines) format. The `|| true` ensures the workflow continues even if secrets are found, allowing the findings to be reported as evidence.
 
 ```bash
-docker run --rm -it -v "$PWD:/pwd" trufflesecurity/trufflehog:latest filesystem /pwd --json
+docker run --rm -v "$PWD:/pwd" trufflesecurity/trufflehog:latest filesystem /pwd --json > trufflehog-results.jsonl
 ```
 
 * **Process Results:**
-  The raw `.jsonl` output from Trufflehog is processed in two steps:
+  The raw `.jsonl` output from Trufflehog is processed in two steps. Both scripts remove secret fields before writing files that `jf evd create` will publish.
 
-1. A Python script (`jsonl_to_json_converted.py`) converts the JSON Lines file into a standard, well-formed JSON array named `trufflehog.json`, which is required for the evidence predicate.  
-2. If `ATTACH_OPTIONAL_CUSTOM_MARKDOWN_TO_EVIDENCE` is `true`, a second script (`process_trufflehog_results.py`) generates a human-readable Markdown summary.
+1. `jsonl_to_json_converted.py` converts the JSON Lines file into `trufflehog.json`, the evidence predicate. Each finding keeps only the allowlisted non-secret fields.
+2. If `ATTACH_OPTIONAL_CUSTOM_MARKDOWN_TO_EVIDENCE` is `true`, `process_trufflehog_results.py` generates a human-readable Markdown summary without `Raw` or `RawV2`.
 
 ```bash
-python process_trufflehog_results.py trufflehog-results.json
+python jsonl_to_json_converted.py trufflehog-results.jsonl trufflehog.json
+python process_trufflehog_results.py trufflehog-results.jsonl
 ```
 
 * **Attach Evidence:**
@@ -131,8 +138,9 @@ jf evd create \
   --package-repo-name your-repo-name \
   --key "${{ secrets.JF_PRIVATE_KEY }}" \
   --key-alias ${{ vars.JF_SIGNING_KEY_ALIAS }} \
-  --predicate ./trufflehog-evidence.json \
-  --predicate-type http://trufflesecurity.com/trufflehog/secret-scan
+  --predicate ./trufflehog.json \
+  --predicate-type https://trufflesecurity.com/TruffleHog \
+  --markdown report_readme.md
 ```
 
 ### **References**

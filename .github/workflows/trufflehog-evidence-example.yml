@@ -55,6 +55,8 @@ jobs:
         run: |
           ls
           python ./examples/trufflehog/jsonl_to_json_converted.py
+          # The JSONL still holds Raw/RawV2. Only the sanitized predicate and markdown are published.
+          rm -f trufflehog-results.jsonl
           jf evd create \
             --package-name $IMAGE_NAME \
             --package-version $VERSION \
